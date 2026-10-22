@@ -59,8 +59,10 @@ class CourseViewsTest(TestCase):
     def setUp(self):
         # create a client for testing
         self.client = Client()
-        # create a user for testing
-        self.user = User.objects.create_user(username='teacher', password='password123')
+        # create a staff/teacher user for testing
+        self.user = User.objects.create_user(username='teacher', password='password123', is_staff=True)
+        # create a regular student user for testing
+        self.student_user = User.objects.create_user(username='student_user', password='password123', is_staff=False)
         # create a course for testing
         self.course = Course.objects.create(
             code='CS301',
@@ -92,11 +94,38 @@ class CourseViewsTest(TestCase):
     # test_course_create_requires_login method is used to test the course create view
     # it is used to check if the course create view is correct
     def test_course_create_requires_login(self):
-        response = self.client.get(reverse('courses:course_create')) #
+        response = self.client.get(reverse('courses:course_create'))
         self.assertEqual(response.status_code, 302)
 
     # test_course_create_authenticated method is used to test the course create view
-    # it is used to check if the course create view is correct
+    def test_course_create_authenticated(self):
         self.client.login(username='teacher', password='password123')
         response = self.client.get(reverse('courses:course_create'))
         self.assertEqual(response.status_code, 200)
+
+    # test student cannot access course create view (403 Forbidden)
+    def test_student_cannot_create_course(self):
+        self.client.login(username='student_user', password='password123')
+        response = self.client.get(reverse('courses:course_create'))
+        self.assertEqual(response.status_code, 403)
+
+    # test student cannot access course update view (403 Forbidden)
+    def test_student_cannot_update_course(self):
+        self.client.login(username='student_user', password='password123')
+        response = self.client.get(reverse('courses:course_update', kwargs={'pk': self.course.pk}))
+        self.assertEqual(response.status_code, 403)
+
+    # test student cannot delete course (403 Forbidden)
+    def test_student_cannot_delete_course(self):
+        self.client.login(username='student_user', password='password123')
+        response = self.client.post(reverse('courses:course_delete', kwargs={'pk': self.course.pk}))
+        self.assertEqual(response.status_code, 403)
+
+    # test student does not see Add, Edit, Delete buttons in course list
+    def test_student_sees_no_modification_buttons_in_course_list(self):
+        self.client.login(username='student_user', password='password123')
+        response = self.client.get(reverse('courses:course_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Add New Course')
+        self.assertNotContains(response, reverse('courses:course_update', kwargs={'pk': self.course.pk}))
+        self.assertNotContains(response, reverse('courses:course_delete', kwargs={'pk': self.course.pk}))

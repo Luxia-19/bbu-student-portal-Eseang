@@ -26,6 +26,7 @@ from django.db.models import Q, Count
 # import reverse_lazy from django.urls module for view functions
 # reverse_lazy is used to reverse a URL
 from django.urls import reverse_lazy
+from django.core.exceptions import PermissionDenied
 # import Course model from .models module for view functions
 from .models import Course
 # import CourseForm, CourseFilterForm from .forms module for view functions
@@ -94,9 +95,12 @@ def course_detail(request, pk):
 
 #@login_required is a decorator that requires login to access a view
 @login_required
-# Course Creation View
+# Course Creation View (Staff only)
 def course_create(request):
-    """Create a new course"""
+    """Create a new course (Staff only: teachers and administrators)"""
+    if not request.user.is_staff:
+        raise PermissionDenied("Only instructors and staff can create courses.")
+
     # Check if the request method is POST
     if request.method == 'POST':
         # Create a new form with the POST data
@@ -116,9 +120,12 @@ def course_create(request):
     return render(request, 'courses/course_form.html', context)
 
 @login_required
-# Course Update View
+# Course Update View (Staff only)
 def course_update(request, pk):
-    """Update course information"""
+    """Update course information (Staff only: teachers and administrators)"""
+    if not request.user.is_staff:
+        raise PermissionDenied("Only instructors and staff can update courses.")
+
     # Get the course by primary key
     course = get_object_or_404(Course, pk=pk)
     # Check if the request method is POST
@@ -140,9 +147,12 @@ def course_update(request, pk):
     return render(request, 'courses/course_form.html', context)
 
 @login_required
-# Course Deletion View
+# Course Deletion View (Staff only)
 def course_delete(request, pk):
-    """Delete a course"""
+    """Delete a course (Staff only: teachers and administrators)"""
+    if not request.user.is_staff:
+        raise PermissionDenied("Only instructors and staff can delete courses.")
+
     # Get the course by primary key
     course = get_object_or_404(Course, pk=pk)
     # Check if the request method is POST
@@ -214,22 +224,27 @@ class CourseDetailView(DetailView):
         context['total_students'] = self.object.enrollments.count()
         return context
 
-class CourseCreateView(LoginRequiredMixin, CreateView):
-    """Class-based view for creating a new course"""
+class StaffRequiredMixin(UserPassesTestMixin):
+    """Mixin to ensure only staff members (teachers and admins) can access the view"""
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_staff
+
+class CourseCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
+    """Class-based view for creating a new course (Staff only)"""
     model = Course
     form_class = CourseForm
     template_name = 'courses/course_form.html'
     success_url = reverse_lazy('courses:course_list')
 
-class CourseUpdateView(LoginRequiredMixin, UpdateView):
-    """Class-based view for updating course information"""
+class CourseUpdateView(LoginRequiredMixin, StaffRequiredMixin, UpdateView):
+    """Class-based view for updating course information (Staff only)"""
     model = Course
     form_class = CourseForm
     template_name = 'courses/course_form.html'
     success_url = reverse_lazy('courses:course_list')
 
-class CourseDeleteView(LoginRequiredMixin, DeleteView):
-    """Class-based view for deleting a course"""
+class CourseDeleteView(LoginRequiredMixin, StaffRequiredMixin, DeleteView):
+    """Class-based view for deleting a course (Staff only)"""
     model = Course
     template_name = 'courses/course_confirm_delete.html'
     success_url = reverse_lazy('courses:course_list')

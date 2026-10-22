@@ -31,7 +31,8 @@
                 </div>
             </div>
             
-            <!-- Enrolled Students -->
+            <!-- Enrolled Students (Staff Only) -->
+            {% if user.is_staff %}
             <div>
                 <h3>Enrolled Students ({{ course.enrollments.count }})</h3>
                 {% if course.enrollments.all %}
@@ -72,6 +73,7 @@
                     <p class="text-muted">No students enrolled yet.</p>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
         
         <div class="col-lg-4">
@@ -80,12 +82,14 @@
                     <h5 class="mb-0">Actions</h5>
                 </div>
                 <div class="card-body">
+                    {% if user.is_staff %}
                     <a href="{% url 'courses:course_update' course.id %}" class="btn btn-primary btn-sm w-100 mb-2">
                         <i class="fas fa-edit"></i> Edit
                     </a>
                     <a href="{% url 'courses:course_delete' course.id %}" class="btn btn-danger btn-sm w-100 mb-2">
                         <i class="fas fa-trash"></i> Delete
                     </a>
+                    {% endif %}
                     <a href="{% url 'courses:course_list' %}" class="btn btn-secondary btn-sm w-100">
                         <i class="fas fa-arrow-left"></i> Back to List
                     </a>
