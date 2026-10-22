@@ -49,7 +49,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'students:student_list' %}">Students</a>
+                        {% if user.is_authenticated and not user.is_staff and user.student %}
+                            <a class="nav-link" href="{% url 'students:student_detail' user.student.pk %}">My Profile</a>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'students:student_list' %}">Students</a>
+                        {% endif %}
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'courses:course_list' %}">Courses</a>
@@ -58,15 +62,21 @@
                         <a class="nav-link" href="{% url 'enrollments:enrollment_list' %}">Enrollments</a>
                     </li>
                     {% if user.is_authenticated %}
+                    {% if user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/">Admin Panel</a>
                     </li>
+                    {% endif %}
                     <li class="nav-item dropdown ms-lg-2">
                         <a class="nav-link dropdown-toggle btn btn-sm btn-outline-light text-white px-3" href="#" role="button" data-bs-toggle="dropdown">
                             👤 {{ user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                             <li><span class="dropdown-item-text text-muted small">{{ user.email|default:"No email" }}</span></li>
+                            {% if user.student %}
+                            <li><a class="dropdown-item" href="{% url 'students:student_detail' user.student.pk %}">👤 My Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'enrollments:student_transcript' user.student.student_id %}">📄 My Transcript</a></li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                         </ul>

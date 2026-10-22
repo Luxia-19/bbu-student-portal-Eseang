@@ -18,6 +18,7 @@
 - ✅ សាកល្បង Django ORM និង Models
 - ✅ បង្ហាញ Django Admin Panel
 - ✅ បង្កើត REST APIs ដោយប្រើ Django REST Framework
+- ✅ ការពារសុវត្ថិភាព និងគ្រប់គ្រងសិទ្ធិតួនាទី (Role-Based Access Control: Staff vs Student Profile Isolation)
 - ✅ ផ្តល់ឧបាយកលបង្ហាប់សម្រាប់ 60+ practice problems
 
 ---
@@ -393,6 +394,7 @@ Follow this order for comprehensive learning:
 
 | ឯកសារ (File) | ការពិពណ៌នា (Description) |
 |-------------|-------------------------|
+| [lessons/SECURITY_AND_PERMISSIONS_KH.md](lessons/SECURITY_AND_PERMISSIONS_KH.md) | Security & Role-Based Access Control Guide (មគ្គុទ្ទេសក៍សុវត្ថិភាព និងការគ្រប់គ្រងសិទ្ធិ) |
 | [lessons/INSTRUCTIONS_KH.md](lessons/INSTRUCTIONS_KH.md) | 12-part comprehensive guide in Khmer (មគ្គុទ្ទេសក៍ពេញលេញ) |
 | [lessons/STATIC_FILES_GUIDE_KH.md](lessons/STATIC_FILES_GUIDE_KH.md) | Complete guide on Static Files setup & usage (មគ្គុទ្ទេសក៍ Static Files) |
 | [lessons/MEDIA_FILES_GUIDE_KH.md](lessons/MEDIA_FILES_GUIDE_KH.md) | Complete guide on Media Files & Uploads (មគ្គុទ្ទេសក៍ Media Files) |

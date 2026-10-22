@@ -5,6 +5,11 @@ from django.contrib.auth.forms import UserCreationForm
 
 class StudentForm(forms.ModelForm):
     """Form for creating and updating student information"""
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user and not user.is_staff and 'student_id' in self.fields:
+            self.fields['student_id'].disabled = True
+
     class Meta:
         model = Student
         fields = ['student_id', 'khmer_name', 'date_of_birth', 'gender', 'phone_number', 

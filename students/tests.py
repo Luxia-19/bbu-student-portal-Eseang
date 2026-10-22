@@ -43,9 +43,11 @@ class StudentModelTest(TestCase):
 class StudentViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
+        # Staff teacher user
         self.user = User.objects.create_user(
             username='teacher',
-            password='password123'
+            password='password123',
+            is_staff=True
         )
         self.student = Student.objects.create(
             user=self.user,
@@ -56,12 +58,44 @@ class StudentViewsTest(TestCase):
             city='Siem Reap',
             country='Cambodia'
         )
+        # Regular student user 1
+        self.student_user = User.objects.create_user(
+            username='student1',
+            password='password123',
+            is_staff=False
+        )
+        self.student_obj = Student.objects.create(
+            user=self.student_user,
+            student_id='STU801',
+            khmer_name='សុខ ចាន់ដារា',
+            date_of_birth=date(2003, 2, 2),
+            gender='M',
+            address='Street 50',
+            city='Phnom Penh',
+            country='Cambodia'
+        )
+        # Regular student user 2
+        self.other_student_user = User.objects.create_user(
+            username='student2',
+            password='password123',
+            is_staff=False
+        )
+        self.other_student_obj = Student.objects.create(
+            user=self.other_student_user,
+            student_id='STU802',
+            khmer_name='គង់ សុភា',
+            date_of_birth=date(2003, 3, 3),
+            gender='F',
+            address='Street 60',
+            city='Siem Reap',
+            country='Cambodia'
+        )
 
     def test_student_list_login_required(self):
         response = self.client.get(reverse('students:student_list'))
         self.assertEqual(response.status_code, 302)
 
-    def test_student_list_authenticated(self):
+    def test_student_list_authenticated_staff(self):
         self.client.login(username='teacher', password='password123')
         self.student.khmer_name = 'ជា ពិសិដ្ឋ'
         self.student.save()
@@ -82,6 +116,87 @@ class StudentViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'ហេង មុនី')
         self.assertContains(response, 'STU202')
+
+    def test_regular_student_redirected_from_student_list_to_own_profile(self):
+        """Regular student cannot browse directory and is redirected to own profile"""
+        self.client.login(username='student1', password='password123')
+        response = self.client.get(reverse('students:student_list'))
+        self.assertRedirects(response, reverse('students:student_detail', kwargs={'pk': self.student_obj.pk}))
+
+    def test_regular_student_cannot_view_other_student_detail(self):
+        """Regular student accessing another student's detail receives 403 Forbidden"""
+        self.client.login(username='student1', password='password123')
+        response = self.client.get(reverse('students:student_detail', kwargs={'pk': self.other_student_obj.pk}))
+        self.assertEqual(response.status_code, 403)
+
+    def test_regular_student_can_view_own_detail(self):
+        """Regular student can access their own profile detail"""
+        self.client.login(username='student1', password='password123')
+        response = self.client.get(reverse('students:student_detail', kwargs={'pk': self.student_obj.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'STU801')
+        self.assertContains(response, 'សុខ ចាន់ដារា')
+
+    def test_regular_student_cannot_update_other_student(self):
+        """Regular student trying to edit another student's profile receives 403 Forbidden"""
+        self.client.login(username='student1', password='password123')
+        response = self.client.post(reverse('students:student_update', kwargs={'pk': self.other_student_obj.pk}), {
+            'student_id': 'STU802',
+            'khmer_name': 'ឈ្មោះក្លែងក្លាយ',
+            'date_of_birth': '2003-03-03',
+            'gender': 'F',
+            'address': 'New Address',
+            'city': 'Siem Reap',
+            'country': 'Cambodia',
+            'username': 'student2',
+            'first_name': 'Hacked',
+            'last_name': 'Account',
+            'email': 'student2@example.com'
+        })
+        self.assertEqual(response.status_code, 403)
+        self.other_student_obj.refresh_from_db()
+        self.assertNotEqual(self.other_student_obj.khmer_name, 'ឈ្មោះក្លែងក្លាយ')
+
+    def test_regular_student_can_update_own_profile(self):
+        """Regular student can edit their own profile"""
+        self.client.login(username='student1', password='password123')
+        response = self.client.post(reverse('students:student_update', kwargs={'pk': self.student_obj.pk}), {
+            'student_id': 'STU801',
+            'khmer_name': 'សុខ ចាន់ដារា កែប្រែ',
+            'date_of_birth': '2003-02-02',
+            'gender': 'M',
+            'phone_number': '012111222',
+            'address': 'Street 50 Updated',
+            'city': 'Phnom Penh',
+            'country': 'Cambodia',
+            'username': 'student1',
+            'first_name': 'Chantara',
+            'last_name': 'Sok',
+            'email': 'student1@example.com'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.student_obj.refresh_from_db()
+        self.assertEqual(self.student_obj.khmer_name, 'សុខ ចាន់ដារា កែប្រែ')
+
+    def test_regular_student_cannot_delete_student(self):
+        """Regular student cannot delete other student or themselves"""
+        self.client.login(username='student1', password='password123')
+        # Attempt to delete other student
+        response_other = self.client.post(reverse('students:student_delete', kwargs={'pk': self.other_student_obj.pk}))
+        self.assertEqual(response_other.status_code, 403)
+        self.assertTrue(Student.objects.filter(pk=self.other_student_obj.pk).exists())
+
+        # Attempt to delete own account
+        response_own = self.client.post(reverse('students:student_delete', kwargs={'pk': self.student_obj.pk}))
+        self.assertEqual(response_own.status_code, 403)
+        self.assertTrue(Student.objects.filter(pk=self.student_obj.pk).exists())
+
+    def test_staff_can_delete_student(self):
+        """Staff members are authorized to delete student records"""
+        self.client.login(username='teacher', password='password123')
+        response = self.client.post(reverse('students:student_delete', kwargs={'pk': self.other_student_obj.pk}))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Student.objects.filter(pk=self.other_student_obj.pk).exists())
 
     def test_student_register_page(self):
         response = self.client.get(reverse('students:register'))

@@ -116,3 +116,21 @@ class EnrollmentViewsTest(TestCase):
         })
         self.assertEqual(post_response.status_code, 302)
         self.assertTrue(Enrollment.objects.filter(student=self.student, course=new_course).exists())
+
+    def test_student_can_view_own_transcript(self):
+        self.client.login(username='student2', password='password123')
+        response = self.client.get(reverse('enrollments:student_transcript', kwargs={'student_id': self.student.student_id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'CS402')
+
+    def test_student_cannot_view_other_student_transcript(self):
+        other_user = User.objects.create_user(username='other_student', password='password123')
+        self.client.login(username='other_student', password='password123')
+        response = self.client.get(reverse('enrollments:student_transcript', kwargs={'student_id': self.student.student_id}))
+        self.assertEqual(response.status_code, 403)
+
+    def test_regular_student_cannot_create_enrollment(self):
+        self.client.login(username='student2', password='password123')
+        response = self.client.get(reverse('enrollments:enrollment_create'))
+        self.assertEqual(response.status_code, 403)
+

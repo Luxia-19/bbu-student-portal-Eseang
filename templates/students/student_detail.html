@@ -4,9 +4,11 @@
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      {% if user.is_staff %}
       <li class="breadcrumb-item">
         <a href="{% url 'students:student_list' %}">Students</a>
       </li>
+      {% endif %}
       <li class="breadcrumb-item active" aria-current="page">
         {{ student.student_id }}
       </li>
@@ -165,12 +167,15 @@
           >
             <i class="fas fa-file-alt"></i> 📄 View Transcript
           </a>
+          {% if user.is_staff or user == student.user %}
           <a
             href="{% url 'students:student_update' student.id %}"
             class="btn btn-warning btn-sm w-100 mb-2"
           >
             <i class="fas fa-edit"></i> ✏️ Edit Profile
           </a>
+          {% endif %}
+          {% if user.is_staff %}
           <a
             href="{% url 'students:student_delete' student.id %}"
             class="btn btn-danger btn-sm w-100 mb-2"
@@ -183,6 +188,14 @@
           >
             <i class="fas fa-arrow-left"></i> Back to List
           </a>
+          {% else %}
+          <a
+            href="{% url 'home' %}"
+            class="btn btn-outline-secondary btn-sm w-100"
+          >
+            <i class="fas fa-home"></i> Back to Home
+          </a>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.core.exceptions import PermissionDenied
 from .models import Student
 from .forms import StudentForm, UserForm, StudentRegistrationForm
 
@@ -16,7 +17,13 @@ from .forms import StudentForm, UserForm, StudentRegistrationForm
 
 @login_required
 def student_list(request):
-    """List all students with search functionality and pagination"""
+    """List all students with search functionality and pagination (Staff only; students redirected to own profile)"""
+    if not request.user.is_staff:
+        if hasattr(request.user, 'student'):
+            messages.info(request, "Students can only access their own profile.")
+            return redirect('students:student_detail', pk=request.user.student.pk)
+        raise PermissionDenied("Only staff members can view the student directory.")
+
     search_query = request.GET.get('q', '').strip()
     students_qs = Student.objects.select_related('user').all()
     
@@ -44,8 +51,13 @@ def student_list(request):
 
 @login_required
 def student_detail(request, pk):
-    """Display detailed information about a student"""
+    """Display detailed information about a student (Staff or student owner only)"""
     student = get_object_or_404(Student, pk=pk)
+    
+    # Ownership/Role Authorization check
+    if not request.user.is_staff and student.user != request.user:
+        raise PermissionDenied("You are not authorized to view other students' profiles.")
+    
     enrollments = student.enrollments.all()
     
     context = {
@@ -56,11 +68,15 @@ def student_detail(request, pk):
 
 @login_required
 def student_update(request, pk):
-    """Update student information"""
+    """Update student information (Staff or student owner only)"""
     student = get_object_or_404(Student, pk=pk)
     
+    # Ownership/Role Authorization check
+    if not request.user.is_staff and student.user != request.user:
+        raise PermissionDenied("You are not authorized to edit this student profile.")
+    
     if request.method == 'POST':
-        student_form = StudentForm(request.POST, request.FILES, instance=student)
+        student_form = StudentForm(request.POST, request.FILES, instance=student, user=request.user)
         user_form = UserForm(request.POST, instance=student.user)
         
         if student_form.is_valid() and user_form.is_valid():
@@ -69,7 +85,7 @@ def student_update(request, pk):
             messages.success(request, f"Student {student.student_id} updated successfully!")
             return redirect('students:student_detail', pk=student.pk)
     else:
-        student_form = StudentForm(instance=student)
+        student_form = StudentForm(instance=student, user=request.user)
         user_form = UserForm(instance=student.user)
     
     context = {
@@ -124,12 +140,16 @@ def register_student(request):
 
 @login_required
 def student_delete(request, pk):
-    """Delete a student"""
+    """Delete a student (Staff only)"""
+    if not request.user.is_staff:
+        raise PermissionDenied("Only staff and administrators can delete student records.")
+
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
         user = student.user
         student.delete()
         user.delete()
+        messages.success(request, f"Student {student.student_id} deleted successfully.")
         return redirect('students:student_list')
     
     context = {'student': student}
@@ -137,12 +157,21 @@ def student_delete(request, pk):
 
 # Class-Based Views (CBV)
 
-class StudentListView(LoginRequiredMixin, ListView):
-    """Class-based view for listing students"""
+class StudentListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    """Class-based view for listing students (Staff only; students redirected to own profile)"""
     model = Student
     template_name = 'students/student_list.html'
     context_object_name = 'students'
     paginate_by = 20
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated and hasattr(self.request.user, 'student'):
+            messages.info(self.request, "Students can only access their own profile.")
+            return redirect('students:student_detail', pk=self.request.user.student.pk)
+        return super().handle_no_permission()
     
     def get_queryset(self):
         queryset = Student.objects.select_related('user').all()
@@ -164,23 +193,30 @@ class StudentListView(LoginRequiredMixin, ListView):
         context['search_query'] = self.request.GET.get('q', '').strip()
         return context
 
-class StudentDetailView(LoginRequiredMixin, DetailView):
-    """Class-based view for student details"""
+class StudentDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """Class-based view for student details (Staff or student owner only)"""
     model = Student
     template_name = 'students/student_detail.html'
     context_object_name = 'student'
+
+    def test_func(self):
+        student = self.get_object()
+        return self.request.user.is_staff or student.user == self.request.user
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['enrollments'] = self.object.enrollments.all()
         return context
 
-class StudentCreateView(LoginRequiredMixin, CreateView):
-    """Class-based view for creating a new student"""
+class StudentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Class-based view for creating a new student (Staff only)"""
     model = Student
     form_class = StudentForm
     template_name = 'students/student_form.html'
     success_url = reverse_lazy('students:student_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def form_valid(self, form):
         if not hasattr(form.instance, 'user') or form.instance.user_id is None:
@@ -196,15 +232,27 @@ class StudentCreateView(LoginRequiredMixin, CreateView):
                 form.instance.user = user
         return super().form_valid(form)
 
-class StudentUpdateView(LoginRequiredMixin, UpdateView):
-    """Class-based view for updating student information"""
+class StudentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Class-based view for updating student information (Staff or student owner only)"""
     model = Student
     form_class = StudentForm
     template_name = 'students/student_form.html'
     success_url = reverse_lazy('students:student_list')
 
-class StudentDeleteView(LoginRequiredMixin, DeleteView):
-    """Class-based view for deleting a student"""
+    def test_func(self):
+        student = self.get_object()
+        return self.request.user.is_staff or student.user == self.request.user
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+class StudentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Class-based view for deleting a student (Staff only)"""
     model = Student
     template_name = 'students/student_confirm_delete.html'
     success_url = reverse_lazy('students:student_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
