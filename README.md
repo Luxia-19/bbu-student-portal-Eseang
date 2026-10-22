@@ -47,17 +47,19 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### ៤. បង្កើត Superuser (Admin Account)
+### ៤. បង្កើតគណនីសាកល្បងទាំង ៣ តួនាទី (Setup 3-Role Test Accounts)
+
+ដំណើរការ command តែមួយគត់ដើម្បីបង្កើត/កំណត់គណនីទាំង ៣ តួនាទី និងទិន្នន័យគំរូដោយស្វ័យប្រវត្តិ៖
 
 ```bash
-python manage.py createsuperuser
-# បង្ហាញឈ្មោះប្រើប្រាស់, អ៊ីមែល, ល ស្ទាប់
-
-# ឧទាហរណ៍:
-# Username: admin
-# Email: admin@example.com
-# Password: admin123
+python manage.py setup_test_data
 ```
+
+| តួនាទី (Role) | ឈ្មោះគណនី (Username) | ពាក្យសម្ងាត់ (Password) | វិសាលភាពសិទ្ធិ (Access Scope) |
+| :--- | :--- | :--- | :--- |
+| **👑 Admin / Superuser** | `admin` | `admin123456` | សិទ្ធិពេញលេញលើប្រព័ន្ធ, Django Admin Panel (`/admin/`), CRUD គ្រប់យ៉ាង |
+| **👨‍🏫 Faculty / Teacher** | `teacher` | `teacher123456` | សិទ្ធិជាគ្រូ/Staff, មើលបញ្ជីសិស្សទាំងអស់, គ្រប់គ្រងវគ្គ, ដាក់ពិន្ទុ Grade |
+| **🎓 Regular Student** | `student` | `student123456` | សិទ្ធិជានិស្សិត, មើល/កែប្រែបានតែ Profile & Transcript ខ្លួនឯង (ជាប់ isolation) |
 
 ### ៥. ដាក់ដំណើរការ Development Server
 
@@ -65,11 +67,12 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-ចូលប្រើប្រាស់នៅ `http://127.0.0.1:8000/`
+ចូលប្រើប្រាស់នៅ `http://127.0.0.1:8000/` (ព័ត៌មានគណនីសាកល្បងទាំង ៣ ក៏មានបង្ហាញនៅលើទំព័រដើមផងដែរ)
 
 ### ៦. ចូលក្នុង Admin Panel
 
-ចូលក្នុង `http://127.0.0.1:8000/admin/` ដោយប្រើ superuser credentials
+ចូលក្នុង `http://127.0.0.1:8000/admin/` ដោយប្រើ `admin` / `admin123456`
+
 
 ---
 

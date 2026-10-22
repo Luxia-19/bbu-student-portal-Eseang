@@ -357,11 +357,75 @@ def run_seed(num_students=1000):
     print("=" * 65)
 
     with transaction.atomic():
-        # 1. Create Instructors
-        print("\n[1/4] 👨‍🏫 Creating IT Faculty Instructors...")
+        # 1. Create Instructors & Role Test Accounts
+        print("\n[1/4] 👨‍🏫 Creating IT Faculty Instructors & Demo Accounts...")
         instructor_objs = []
         default_pw_hash = make_password("BbuFaculty@2026")
         
+        # Ensure 'admin' Superuser Account
+        admin_user, _ = User.objects.get_or_create(
+            username="admin",
+            defaults={
+                "first_name": "System",
+                "last_name": "Administrator",
+                "email": "admin@bbu.edu.kh",
+                "is_staff": True,
+                "is_superuser": True,
+            }
+        )
+        admin_user.set_password("admin123456")
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.save()
+
+        # Ensure 'teacher' Faculty Account
+        teacher_user, _ = User.objects.get_or_create(
+            username="teacher",
+            defaults={
+                "first_name": "Vichea (វិជ្ជា)",
+                "last_name": "Heng (ហេង)",
+                "email": "teacher@bbu.edu.kh",
+                "is_staff": True,
+                "is_superuser": False,
+            }
+        )
+        teacher_user.set_password("teacher123456")
+        teacher_user.is_staff = True
+        teacher_user.is_superuser = False
+        teacher_user.save()
+        instructor_objs.append(teacher_user)
+
+        # Ensure 'student' Demo Account
+        student_user, _ = User.objects.get_or_create(
+            username="student",
+            defaults={
+                "first_name": "Dara",
+                "last_name": "Sok",
+                "email": "student@bbu.edu.kh",
+                "is_staff": False,
+                "is_superuser": False,
+            }
+        )
+        student_user.set_password("student123456")
+        student_user.is_staff = False
+        student_user.is_superuser = False
+        student_user.save()
+
+        Student.objects.update_or_create(
+            user=student_user,
+            defaults={
+                "student_id": "STU-BBU-001",
+                "khmer_name": "សុខ ដារ៉ា",
+                "date_of_birth": date(2003, 5, 15),
+                "gender": "M",
+                "phone_number": "012888999",
+                "address": "Street 271, Sangkat Boeung Tumpun",
+                "city": "Phnom Penh (ភ្នំពេញ)",
+                "country": "Cambodia (កម្ពុជា)",
+                "is_active": True,
+            }
+        )
+
         for username, first_name, last_name, email in INSTRUCTORS_DATA:
             user, created = User.objects.get_or_create(
                 username=username,
@@ -374,7 +438,7 @@ def run_seed(num_students=1000):
                 }
             )
             instructor_objs.append(user)
-        print(f"      ✅ {len(instructor_objs)} Instructors ready.")
+        print(f"      ✅ {len(instructor_objs)} Instructors ready (including 'teacher').")
 
         # 2. Create Courses
         print("\n[2/4] 📚 Creating BBU IT Courses...")
@@ -623,8 +687,9 @@ def run_seed(num_students=1000):
     print(f"👥 Total Students in System:    {Student.objects.count():,}")
     print(f"📚 Total IT Courses in System: {Course.objects.count():,}")
     print(f"📝 Total Enrollments in System:{Enrollment.objects.count():,}")
-    print(f"🔑 Standard Student Password:   Student@123456")
-    print(f"🔑 Faculty / Admin Password:    BbuFaculty@2026")
+    print(f"👑 Admin Superuser Account:     admin   / admin123456")
+    print(f"👨‍🏫 Faculty Teacher Account:     teacher / teacher123456")
+    print(f"🎓 Regular Student Account:     student / student123456")
     print("=" * 65)
 
 if __name__ == '__main__':

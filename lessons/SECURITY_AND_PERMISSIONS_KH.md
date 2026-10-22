@@ -43,6 +43,20 @@
 | **មើល Transcript (`student_transcript`)** | ✅ មើល transcript សិស្សទាំងអស់បាន | 🔒 មើលបានតែ transcript ផ្ទាល់ខ្លួនរបស់ខ្លួនឯង |
 | **ដាក់ពិន្ទុ & ចុះឈ្មោះ (`enrollments`)** | ✅ មានសិទ្ធិគ្រប់គ្រង | 🔒 មើលបានតែការចុះឈ្មោះរបស់ខ្លួន (ហាមដាក់ពិន្ទុ/លុប) |
 
+### 🔑 គណនីសាកល្បងទាំង ៣ តួនាទី (3-Role Test Accounts)
+
+ប្រព័ន្ធបានបង្កើតគណនីគំរូចំនួន ៣ ស្រាប់សម្រាប់ការធ្វើតេស្ត និងបង្ហាញនៅលើទំព័រដើម (`/`)៖
+
+```bash
+python manage.py setup_test_data
+```
+
+| តួនាទី (Role) | Username | Password | ស្ថានភាពគណនី | វិសាលភាពសិទ្ធិ |
+| :--- | :--- | :--- | :--- | :--- |
+| **👑 Admin / Superuser** | `admin` | `admin123456` | `is_superuser=True`, `is_staff=True` | គ្រប់គ្រងប្រព័ន្ធពេញលេញ, Django Admin Panel (`/admin/`), CRUD គ្រប់ apps |
+| **👨‍🏫 Faculty / Teacher** | `teacher` | `teacher123456` | `is_staff=True`, `is_superuser=False` | មើលបញ្ជីសិស្សទាំងអស់, គ្រប់គ្រងវគ្គ, កែប្រែ enrollments, ដាក់ពិន្ទុ Grade |
+| **🎓 Regular Student** | `student` | `student123456` | `is_staff=False`, `is_superuser=False` | មើល/កែប្រែបានតែ Profile & Transcript ខ្លួនឯង (ID: `STU-BBU-001`) |
+
 ---
 
 ## ៣. ដំណោះស្រាយ និងការកែលម្អ (Implemented Solutions)
