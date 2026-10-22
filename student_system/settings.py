@@ -26,7 +26,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-jt%luhks(%f-u+rud531b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=Csv()))
+ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,.onrender.com,bbu-django-student-system-demo.onrender.com', cast=Csv()))
+if '.onrender.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.onrender.com')
 RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default=None)
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -34,9 +36,13 @@ if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
 # CSRF Trusted Origins for Django 4.0+ in Production (HTTPS)
 CSRF_TRUSTED_ORIGINS = list(config(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:8000,http://127.0.0.1:8000',
+    default='http://localhost:8000,http://127.0.0.1:8000,https://*.onrender.com,https://bbu-django-student-system-demo.onrender.com',
     cast=Csv()
 ))
+if 'https://*.onrender.com' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
+if 'https://bbu-django-student-system-demo.onrender.com' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://bbu-django-student-system-demo.onrender.com')
 if RENDER_EXTERNAL_HOSTNAME:
     render_origin = f'https://{RENDER_EXTERNAL_HOSTNAME}'
     if render_origin not in CSRF_TRUSTED_ORIGINS:
@@ -156,15 +162,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# WhiteNoise storage configuration for compressed static assets
+# WhiteNoise configuration for static assets
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
 
 # Media Files
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # REST Framework Configuration
