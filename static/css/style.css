@@ -1,9 +1,9 @@
 /* Build Bright University (BBU) - Custom Static Stylesheet */
 
 :root {
-    --bbu-primary: #1e3c72;
-    --bbu-secondary: #2a5298;
-    --bbu-accent: #667eea;
+    --bbu-primary: #3bd74d;
+    --bbu-secondary: #39b776;
+    --bbu-accent: #2b8726;
     --bbu-gold: #f6d365;
 }
 
@@ -17,16 +17,16 @@ body {
 /* Custom Gradient Header */
 .bbu-gradient-header {
     background: linear-gradient(135deg, var(--bbu-primary) 0%, var(--bbu-secondary) 100%);
-    color: #ffffff;
+    color: #74ed69;
 }
 
 /* Student Avatar Styles */
 .student-avatar-thumb {
     width: 44px;
-    height: 44px;
+    height: 50px;
     object-fit: cover;
     border-radius: 50%;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #a27af9;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -37,7 +37,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #e2e8f0;
+    background-color: #3cf072;
     color: #64748b;
     font-size: 1.1rem;
     font-weight: 600;
@@ -53,5 +53,5 @@ body {
 
 .card-bbu:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 15px -3px rgba(53, 113, 241, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }

@@ -1,0 +1,14 @@
+* [33m206f616[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix(security): enforce RBAC on course creation, editing, deletion, and enrolled student visibility
+* [33m3c3612c[m fix(deployment): resolve /login/ route 404, admin static CSS on Render, and add login demo helper
+* [33md78304c[m feat(accounts): setup 3-role demo test accounts and display them on homepage
+* [33m1531eb3[m fix(security): enforce role-based access control and student profile isolation
+* [33m3c42613[m docs: add Individual Assignment Guide for class A1IT-B103
+* [33m8daa654[m update lesson
+* [33m8e6fdec[m security: mask personal access token in deployment guide
+* [33m9eccd8d[m feat: add setup_test_data command to seed test data and auto-create admin (admin/admin123456) on deploy
+* [33mfb17bfd[m fix: auto-run database migrations on server start to resolve no such table error
+* [33mbcf3c3c[m docs: add troubleshooting for ModuleNotFoundError app
+* [33ma693640[m feat: add app.py WSGI alias for Render default start command
+* [33mb766d51[m fix: add setuptools and upgrade gunicorn to resolve pkg_resources error on Render
+* [33ma869685[m feat: complete BBU student management system with searchable select and deployment readiness
+* [33mcd3aefc[m feat: complete BBU student management system with searchable select, favicon, and deployment readiness
