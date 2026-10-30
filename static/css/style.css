@@ -1,10 +1,11 @@
 /* Build Bright University (BBU) - Custom Static Stylesheet */
 
 :root {
-    --bbu-primary: #3bd74d;
-    --bbu-secondary: #39b776;
-    --bbu-accent: #2b8726;
-    --bbu-gold: #f6d365;
+  --bbu-primary: #a8e6cf;   /* soft mint green */
+  --bbu-secondary: #121212; /* dark background */
+  --bbu-accent: #56c596;    /* deeper green accent */
+  --bbu-gold: #ffd97d;      /* warm gold highlight */
+  --bbu-text: #e0e0e0;      /* light gray text */
 }
 
 /* Khmer Font enhancements */
@@ -45,9 +46,9 @@ body {
 
 /* Smooth card shadows */
 .card-bbu {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
